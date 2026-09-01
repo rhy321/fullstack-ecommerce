@@ -13,6 +13,7 @@ async function getSalesData() {
     amount: (data._sum.pricePaidInCents || 0) / 100,
     numberOfSales: data._count
   }
+
 }
 
 async function getUserData() {

@@ -1,5 +1,8 @@
 import { Nav, NavLink } from "@/components/Nav";
 
+//caching not needed for admins
+export const dynamic = "force-dynamic"
+
 export default function AdminLayout({ children }: LayoutProps<"/">) {
   return (
     <>
