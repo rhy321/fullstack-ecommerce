@@ -6,14 +6,20 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { formatCurrency } from "@/lib/formatters"
 import { startTransition, useActionState, useEffect, useState } from "react"
-import { addProduct } from "../../_actions/product"
+import { addProduct, updateProduct } from "../../_actions/product"
 import { useFormStatus } from "react-dom"
+import { Product } from "../../../../../generated/prisma/browser"
+import Image from "next/image"
 
-export function ProductForm() {
-  const [state, action] = useActionState(addProduct, {})
-  const [name, setName] = useState("")
-  const [description, setDescription] = useState("")
-  const [priceInCents, setPriceInCents] = useState<number | "">("")
+export function ProductForm({ product }: { product?: Product | null }) {
+  const [state, action] = useActionState(
+    product == null ? 
+    addProduct : 
+    updateProduct.bind(null, product.id), {}
+  )
+  const [name, setName] = useState(product ? product.name : "")
+  const [description, setDescription] = useState(product ? product.description : "")
+  const [priceInCents, setPriceInCents] = useState<number | undefined>(product?.priceInCents)
 
   useEffect(() => {
     if (!state.values) return
@@ -21,7 +27,7 @@ export function ProductForm() {
     startTransition(() => {
       setName(state.values!.name)
       setDescription(state.values!.description)
-      setPriceInCents(state.values!.priceInCents === "" ? "" : Number(state.values!.priceInCents))
+      setPriceInCents(state.values!.priceInCents === undefined ? undefined : Number(state.values!.priceInCents))
     })
   }, [state.values])
 
@@ -51,7 +57,7 @@ export function ProductForm() {
           id="priceInCents"
           name="priceInCents"
           value={priceInCents}
-          onChange={e => setPriceInCents(e.target.value === "" ? "" : Number(e.target.value))}
+          onChange={e => setPriceInCents(e.target.value === undefined ? undefined : Number(e.target.value))}
           required
         />
         <div className="text-muted-foreground">
@@ -78,7 +84,15 @@ export function ProductForm() {
 
       <div className="space-y-2">
         <Label htmlFor="file">File</Label>
-        <Input type="file" id="file" name="file" required></Input>
+        <Input
+          type="file"
+          id="file"
+          name="file"
+          required={product == null}
+        />
+        {product != null &&
+          <div className="text-muted-foreground">{product.filePath}</div>
+        }
         {state.errors?.file?.[0] && (
           <div className="text-destructive">{state.errors.file[0]}</div>
         )}
@@ -86,7 +100,10 @@ export function ProductForm() {
 
       <div className="space-y-2">
         <Label htmlFor="image">Image</Label>
-        <Input type="file" id="image" name="image" required></Input>
+        <Input type="file" id="image" name="image" required={product == null} />
+        {product != null &&
+          <Image src={product.imagePath} height='200' width='200' alt="Product Image" />
+        }
         {state.errors?.image?.[0] && (
           <div className="text-destructive">{state.errors.image[0]}</div>
         )}
